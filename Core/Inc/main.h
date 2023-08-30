@@ -20,6 +20,8 @@
   *
   ******************************************************************************
   */
+#define       LAB_04
+
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -35,6 +37,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 
 /* USER CODE END Includes */
 
@@ -75,18 +78,16 @@ void Error_Handler(void);
 #define USART_RX_GPIO_Port GPIOA
 #define Button_2_Pin GPIO_PIN_4
 #define Button_2_GPIO_Port GPIOA
-#define LED_D1_Pin GPIO_PIN_5
-#define LED_D1_GPIO_Port GPIOA
 #define LED_D2_Pin GPIO_PIN_6
 #define LED_D2_GPIO_Port GPIOA
-#define LED_D3_Pin GPIO_PIN_7
-#define LED_D3_GPIO_Port GPIOA
 #define Button_3_Pin GPIO_PIN_0
 #define Button_3_GPIO_Port GPIOB
 #define SevenSeg_CLK_Pin GPIO_PIN_8
 #define SevenSeg_CLK_GPIO_Port GPIOA
 #define SevenSeg_DATA_Pin GPIO_PIN_9
 #define SevenSeg_DATA_GPIO_Port GPIOA
+#define SPI1_NSS_Pin GPIO_PIN_11
+#define SPI1_NSS_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
@@ -97,6 +98,7 @@ void Error_Handler(void);
 #define LED_D4_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+#define BUFFER_SIZE 255
 
 /* USER CODE END Private defines */
 

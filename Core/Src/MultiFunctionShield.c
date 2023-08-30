@@ -139,9 +139,15 @@ void MultiFunctionShield_Display (int16_t value)
 void Clear_LEDs(void)
 {
 	  // Clear the LED lights
+
+
+// LAB-04 needs D1 and D3 for SPI
+#ifndef          LAB_04
   HAL_GPIO_WritePin(LED_D1_GPIO_Port, LED_D1_Pin,GPIO_PIN_SET);
-  HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin,GPIO_PIN_SET);
+#endif
+
+  HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,GPIO_PIN_SET);
   HAL_GPIO_WritePin(LED_D4_GPIO_Port, LED_D4_Pin,GPIO_PIN_SET);
 }
 

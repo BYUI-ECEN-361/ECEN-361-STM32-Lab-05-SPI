@@ -44,8 +44,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
-SPI_HandleTypeDef hspi3;
 
 TIM_HandleTypeDef htim17;
 
@@ -68,7 +68,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_SPI3_Init(void);
+static void MX_SPI1_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -76,12 +76,14 @@ void StartDefaultTask(void *argument);
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 void D2_Task(void *argument);
 void Read_and_Transmit_Task();
-void Receive_and_Print_Task(void *argument);
+void Receive_and_Print_Task();
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint8_t RX_Buffer[BUFFER_SIZE] = {0};
 
 /* USER CODE END 0 */
 
@@ -118,15 +120,16 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM17_Init();
   MX_SPI2_Init();
-  MX_SPI3_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   // Start timer
-  // HAL_TIM_Base_Start_IT(&htim7);
-  HAL_TIM_Base_Start_IT(&htim17);  // LED SevenSeg cycle thru them
-  MultiFunctionShield_Clear();
-  Clear_LEDs();  // Clear the lights
-  printf("\033\143Welcome to ECEN-361 Lab-05\n\r\n\r");
+  HAL_TIM_Base_Start_IT(&htim17);							// LED SevenSeg cycle thru them
+  MultiFunctionShield_Clear();								// Clear the 7-seg display
+  Clear_LEDs();												// Clear the lights
+  HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);	// No SPI Out yet
+  printf("\033\143");
+  printf("Welcome to ECEN-361 Lab-05\n\r\n\r");
 
   /* USER CODE END 2 */
 
@@ -233,6 +236,46 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
   * @brief SPI2 Initialization Function
   * @param None
   * @retval None
@@ -249,19 +292,18 @@ static void MX_SPI2_Init(void)
   /* USER CODE END SPI2_Init 1 */
   /* SPI2 parameter configuration*/
   hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.Mode = SPI_MODE_SLAVE;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 7;
   hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
@@ -269,45 +311,6 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
-
-}
-
-/**
-  * @brief SPI3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI3_Init(void)
-{
-
-  /* USER CODE BEGIN SPI3_Init 0 */
-
-  /* USER CODE END SPI3_Init 0 */
-
-  /* USER CODE BEGIN SPI3_Init 1 */
-
-  /* USER CODE END SPI3_Init 1 */
-  /* SPI3 parameter configuration*/
-  hspi3.Instance = SPI3;
-  hspi3.Init.Mode = SPI_MODE_SLAVE;
-  hspi3.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
-  hspi3.Init.DataSize = SPI_DATASIZE_4BIT;
-  hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi3.Init.NSS = SPI_NSS_HARD_INPUT;
-  hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi3.Init.CRCPolynomial = 7;
-  hspi3.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi3.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  if (HAL_SPI_Init(&hspi3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI3_Init 2 */
-
-  /* USER CODE END SPI3_Init 2 */
 
 }
 
@@ -396,10 +399,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_D1_Pin|LED_D2_Pin|SevenSeg_CLK_Pin|SevenSeg_DATA_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, LED_D2_Pin|SevenSeg_CLK_Pin|SevenSeg_DATA_Pin|SPI1_NSS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SevenSeg_LATCH_GPIO_Port, SevenSeg_LATCH_Pin, GPIO_PIN_RESET);
@@ -431,12 +431,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_D1_Pin LED_D2_Pin LED_D3_Pin */
-  GPIO_InitStruct.Pin = LED_D1_Pin|LED_D2_Pin|LED_D3_Pin;
+  /*Configure GPIO pin : LED_D2_Pin */
+  GPIO_InitStruct.Pin = LED_D2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED_D2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Button_3_Pin */
   GPIO_InitStruct.Pin = Button_3_Pin;
@@ -444,8 +444,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(Button_3_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SevenSeg_CLK_Pin SevenSeg_DATA_Pin */
-  GPIO_InitStruct.Pin = SevenSeg_CLK_Pin|SevenSeg_DATA_Pin;
+  /*Configure GPIO pins : SevenSeg_CLK_Pin SevenSeg_DATA_Pin SPI1_NSS_Pin */
+  GPIO_InitStruct.Pin = SevenSeg_CLK_Pin|SevenSeg_DATA_Pin|SPI1_NSS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -489,7 +489,8 @@ void D2_Task(void *argument)
 void Read_and_Transmit_Task()
 	{
 	uint8_t receive_byte;
-	uint8_t receive_buffer[255];
+	uint8_t receive_buffer[BUFFER_SIZE] = {0};
+	uint8_t *receive_buffer_ptr = receive_buffer;
 	uint8_t bytes_in =0;
 	uint8_t xmitmsg[] = "\n\rInput Line to Send ->";
 	uint8_t sndmsg[] = "\n\rSending -> ";
@@ -516,18 +517,48 @@ void Read_and_Transmit_Task()
 			HAL_UART_Transmit(&huart2, &receive_byte , 1, HAL_MAX_DELAY);
 		}
 
-		// printf("Sending:%s\n\r",receive_buf_ptr);
+		// Tell the User what we got and what we're sending
 		HAL_UART_Transmit(&huart2, sndmsg_ptr, 13, HAL_MAX_DELAY);
-		HAL_UART_Transmit(&huart2, &receive_buffer, bytes_in, HAL_MAX_DELAY);
+		//HAL_UART_Transmit(&huart2, receive_buffer_ptr, bytes_in, HAL_MAX_DELAY);
+		HAL_UART_Transmit(&huart2, RX_Buffer, BUFFER_SIZE, HAL_MAX_DELAY);
+		// Now send it from the SPI Master (SPI_1) -> SPI Slave (SPI_2)
+		// Turn on the ChipEnable (SPI1_NSS -- active low)
 
-
+	    HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 0);
+	    osDelay(5); // wait a bit before transmitting so the process can start the read
+		HAL_SPI_Transmit(&hspi1, receive_buffer_ptr, bytes_in , HAL_MAX_DELAY);
+	    osDelay(5); // wait a bit before transmitting so the process can start the read
+	    HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);
 		}
 	}
 
-void Receive_and_Print_Task(void *argument)
+void Receive_and_Print_Task()
 	{
+	uint8_t receive_buffer[BUFFER_SIZE] = {0};
+	uint8_t *receive_buffer_ptr = receive_buffer;
+	uint8_t receive_byte = 0;
+	uint8_t bytes_in = 0;
+	uint8_t nss;
+
+	/*
+	 *  The receive task waits for something to come in on SPI3, then prints it out on the
+	 *  UART2.   Note that this is inefficient -- all polling.
+	 */
+
 	while(true)
-		__NOP();
+		{
+		// Wait until the peripheral select line goes low: NSS
+		// SPI3_NSS is: PA15
+		nss = HAL_GPIO_ReadPin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin);
+		while (nss == 0)
+			{
+			HAL_SPI_Receive_IT(&hspi2, RX_Buffer, BUFFER_SIZE);
+			// receive_buffer[bytes_in++] = receive_byte;
+			// nss = HAL_GPIO_ReadPin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin);
+			// HAL_UART_Transmit(&huart2, receive_buffer_ptr, bytes_in, HAL_MAX_DELAY);
+			bytes_in=0;  //reset to get the next line
+			}
+		}
 	}
 
 
@@ -596,7 +627,7 @@ void StartDefaultTask(void *argument)
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
+	{
   /* USER CODE BEGIN Callback 0 */
 
 	  if (htim == &htim17 ) { MultiFunctionShield__ISRFunc(); }
@@ -604,10 +635,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM2) {
-    HAL_IncTick();
-  }
+	if (htim->Instance == TIM2) {
+		HAL_IncTick();
+		}
+
+
+
   /* USER CODE BEGIN Callback 1 */
+	}
+
+  void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi)
+  {
+      // printf("here");
+	  if (hspi == &hspi2)
+	  {
+      HAL_SPI_Receive_IT(&hspi2, RX_Buffer, BUFFER_SIZE);
+      HAL_UART_Transmit_IT(&huart2, RX_Buffer, BUFFER_SIZE);
+	  }
 
   /* USER CODE END Callback 1 */
 }
