@@ -75,7 +75,7 @@ void StartDefaultTask(void *argument);
 /* Private function prototypes -----------------------------------------------*/
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 void D2_Task(void *argument);
-void Read_and_Transmit_Task(void *argument);
+void Read_and_Transmit_Task();
 void Receive_and_Print_Task(void *argument);
 
 /* USER CODE END PFP */
@@ -126,6 +126,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim17);  // LED SevenSeg cycle thru them
   MultiFunctionShield_Clear();
   Clear_LEDs();  // Clear the lights
+  printf("\033\143Welcome to ECEN-361 Lab-05\n\r\n\r");
 
   /* USER CODE END 2 */
 
@@ -142,12 +143,6 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
-	/*
-	 * osThreadNew(D2_Task, "D2 Blink", &defaultTask_attributes);
-	osThreadNew(Read_and_Transmit_Task, "SPI_OUT", &defaultTask_attributes);
-	osThreadNew(Receive_and_Print_Task, "SPI_IN", &defaultTask_attributes);
-	*/
-
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -159,13 +154,13 @@ int main(void)
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
+   osThreadNew(Read_and_Transmit_Task, NULL, &defaultTask_attributes);
+   osThreadNew(Receive_and_Print_Task, NULL, &defaultTask_attributes);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  printf("\033\143");  // clear the terminal before printing
-  printf("Hello Lab-05");  // clear the terminal before printing
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -181,6 +176,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	// Read_and_Transmit_Task();
 	}
 
 
@@ -485,37 +481,45 @@ static void MX_GPIO_Init(void)
 void D2_Task(void *argument)
 	{ while(true)
 		{ HAL_GPIO_TogglePin(LED_D2_GPIO_Port,LED_D2_Pin);
-		  osDelay(1000);
+		  HAL_Delay(1000);
 		}
 	}
 
 
-void Read_and_Transmit_Task(void *argument)
+void Read_and_Transmit_Task()
 	{
 	uint8_t receive_byte;
 	uint8_t receive_buffer[255];
-	uint8_t *receive_buf_ptr = receive_buffer;
 	uint8_t bytes_in =0;
+	uint8_t xmitmsg[] = "\n\rInput Line to Send ->";
+	uint8_t sndmsg[] = "\n\rSending -> ";
+	uint8_t *xmitmsg_ptr = xmitmsg;
+	uint8_t *sndmsg_ptr = sndmsg;
+
 	while(true)
 		{
 		bytes_in = 0;
 		receive_byte = 0;
-		printf("Input Line to Send ->");
+		HAL_UART_Transmit(&huart2, xmitmsg_ptr, 23, HAL_MAX_DELAY);
+
 		/* This task reads a line from the Serial/USB port and
 		 * transmits out thru SPI
 		 * Note that this is polling!  One byte at a time.  Very inefficient
 		 */
 		while (receive_byte != '\r')
 		{
-			while (HAL_UART_Receive(&huart2, &receive_byte, 1,10) != HAL_OK) osDelay(1);
+			while (HAL_UART_Receive(&huart2, &receive_byte, 1,10) != HAL_OK) HAL_Delay(1);
 			/* Now we have a byte, if it's a carriage return, send the string
 			 * If not, put it on the buffer
 			 */
 			receive_buffer[bytes_in++] = receive_byte;
+			HAL_UART_Transmit(&huart2, &receive_byte , 1, HAL_MAX_DELAY);
 		}
 
-		printf("Sending:%s\n\r",receive_buf_ptr);
-		HAL_SPI_Transmit(&hspi2, receive_buf_ptr, bytes_in, 200);
+		// printf("Sending:%s\n\r",receive_buf_ptr);
+		HAL_UART_Transmit(&huart2, sndmsg_ptr, 13, HAL_MAX_DELAY);
+		HAL_UART_Transmit(&huart2, &receive_buffer, bytes_in, HAL_MAX_DELAY);
+
 
 		}
 	}
