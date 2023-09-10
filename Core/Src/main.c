@@ -55,7 +55,7 @@ UART_HandleTypeDef huart2;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 5000 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -157,8 +157,9 @@ int main(void)
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-   osThreadNew(Read_and_Transmit_Task, NULL, &defaultTask_attributes);
-   osThreadNew(Receive_and_Print_Task, NULL, &defaultTask_attributes);
+   osThreadNew(D2_Task, NULL, &defaultTask_attributes);
+   // osThreadNew(Read_and_Transmit_Task, NULL, &defaultTask_attributes);
+   // osThreadNew(Receive_and_Print_Task, NULL, &defaultTask_attributes);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
@@ -297,7 +298,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -627,7 +628,7 @@ void StartDefaultTask(void *argument)
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-	{
+{
   /* USER CODE BEGIN Callback 0 */
 
 	  if (htim == &htim17 ) { MultiFunctionShield__ISRFunc(); }
@@ -635,12 +636,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
   /* USER CODE END Callback 0 */
-	if (htim->Instance == TIM2) {
-		HAL_IncTick();
-		}
-
-
-
+  if (htim->Instance == TIM2) {
+    HAL_IncTick();
+  }
   /* USER CODE BEGIN Callback 1 */
 	}
 
