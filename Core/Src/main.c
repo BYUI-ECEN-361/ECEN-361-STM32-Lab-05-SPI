@@ -151,12 +151,7 @@ int main(void)
 	HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);
 
     /**************** STEP 2:  Send it I2C-2 *********************/
-	/*
-	while(HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)SLAVE_ADDRESS,
-	    (uint8_t*)RX_Buffer, bytes_in, 20)!=HAL_OK){
-	       if (HAL_I2C_GetError(&hi2c2) != HAL_I2C_ERROR_AF) Error_Handler();
-	      }
-	  */
+	HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)SLAVE_ADDRESS, RX_Buffer, bytes_in, HAL_MAX_DELAY);
 
     /**************** STEP 3:  Send it USART-3 *********************/
 	HAL_UART_Transmit(&huart3, RX_Buffer, bytes_in, HAL_MAX_DELAY);
@@ -289,7 +284,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
