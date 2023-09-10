@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -51,13 +50,6 @@ TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 5000 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -69,13 +61,11 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI1_Init(void);
-void StartDefaultTask(void *argument);
-
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 void D2_Task(void *argument);
-void Read_and_Transmit_Task();
+uint8_t Read_and_Transmit_Task();
 void Receive_and_Print_Task();
 
 /* USER CODE END PFP */
@@ -94,6 +84,7 @@ uint8_t RX_Buffer[BUFFER_SIZE] = {0};
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	uint8_t bytes_in =0;
 
   /* USER CODE END 1 */
 
@@ -129,48 +120,12 @@ int main(void)
   Clear_LEDs();												// Clear the lights
   HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);	// No SPI Out yet
   printf("\033\143");
-  printf("Welcome to ECEN-361 Lab-05\n\r\n\r");
+  printf("Welcome to ECEN-361 Lab-05 -- No FreeRTOS version\n\r\n\r");
+  // SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_SPE | SPI_CR1_SSM | SPI_CR1_SSI;
+
 
   /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-   osThreadNew(D2_Task, NULL, &defaultTask_attributes);
-   // osThreadNew(Read_and_Transmit_Task, NULL, &defaultTask_attributes);
-   // osThreadNew(Receive_and_Print_Task, NULL, &defaultTask_attributes);
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
@@ -180,8 +135,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	// Read_and_Transmit_Task();
-	}
+    bytes_in = Read_and_Transmit_Task();
+
+    /**************** Send it SPI *********************/
+    /* Set up the receive to happen with an interrupt */
+    /* The Buffer is global:  RX_Buffer */
+
+	HAL_SPI_Receive_IT(&hspi2, RX_Buffer, 10);
+	HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 0);
+	// HAL_Delay(5); // wait a bit before transmitting so the process can start the read
+	HAL_SPI_Transmit(&hspi1, RX_Buffer, bytes_in , HAL_MAX_DELAY);
+	// HAL_Delay(5); // wait a bit before transmitting so the process can start the read
+	HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);
+
+
+    /**************** Send it SPI *********************/
+
+		}
 
 
   /* USER CODE END 3 */
@@ -250,6 +220,9 @@ static void MX_SPI1_Init(void)
 
   /* USER CODE BEGIN SPI1_Init 1 */
 
+  /*   625KHz == SPI_BAUDRATEPRESCALER_128 ==> 80Mhz / 128
+   *   40Mhz == SPI_BAUDRATEPRESCALER_2    ==> 80Mhz / 2
+   */
   /* USER CODE END SPI1_Init 1 */
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
@@ -259,7 +232,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -298,7 +271,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -487,19 +460,19 @@ void D2_Task(void *argument)
 	}
 
 
-void Read_and_Transmit_Task()
+uint8_t Read_and_Transmit_Task()
 	{
+	/* Return the number of bytes */
+
 	uint8_t receive_byte;
 	uint8_t receive_buffer[BUFFER_SIZE] = {0};
-	uint8_t *receive_buffer_ptr = receive_buffer;
+	// uint8_t *receive_buffer_ptr = receive_buffer;
 	uint8_t bytes_in =0;
 	uint8_t xmitmsg[] = "\n\rInput Line to Send ->";
 	uint8_t sndmsg[] = "\n\rSending -> ";
 	uint8_t *xmitmsg_ptr = xmitmsg;
 	uint8_t *sndmsg_ptr = sndmsg;
 
-	while(true)
-		{
 		bytes_in = 0;
 		receive_byte = 0;
 		HAL_UART_Transmit(&huart2, xmitmsg_ptr, 23, HAL_MAX_DELAY);
@@ -514,54 +487,19 @@ void Read_and_Transmit_Task()
 			/* Now we have a byte, if it's a carriage return, send the string
 			 * If not, put it on the buffer
 			 */
-			receive_buffer[bytes_in++] = receive_byte;
-			HAL_UART_Transmit(&huart2, &receive_byte , 1, HAL_MAX_DELAY);
+			RX_Buffer[bytes_in] = receive_byte;
+			HAL_UART_Transmit(&huart2, &RX_Buffer[bytes_in++] , 1, HAL_MAX_DELAY);  //echo each one as it's typed
 		}
 
+		RX_Buffer[bytes_in++] = '\n'; // Add a line_feed
 		// Tell the User what we got and what we're sending
 		HAL_UART_Transmit(&huart2, sndmsg_ptr, 13, HAL_MAX_DELAY);
 		//HAL_UART_Transmit(&huart2, receive_buffer_ptr, bytes_in, HAL_MAX_DELAY);
-		HAL_UART_Transmit(&huart2, RX_Buffer, BUFFER_SIZE, HAL_MAX_DELAY);
+		HAL_UART_Transmit(&huart2, RX_Buffer, bytes_in, HAL_MAX_DELAY);
 		// Now send it from the SPI Master (SPI_1) -> SPI Slave (SPI_2)
 		// Turn on the ChipEnable (SPI1_NSS -- active low)
-
-	    HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 0);
-	    osDelay(5); // wait a bit before transmitting so the process can start the read
-		HAL_SPI_Transmit(&hspi1, receive_buffer_ptr, bytes_in , HAL_MAX_DELAY);
-	    osDelay(5); // wait a bit before transmitting so the process can start the read
-	    HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);
+		return bytes_in;
 		}
-	}
-
-void Receive_and_Print_Task()
-	{
-	uint8_t receive_buffer[BUFFER_SIZE] = {0};
-	uint8_t *receive_buffer_ptr = receive_buffer;
-	uint8_t receive_byte = 0;
-	uint8_t bytes_in = 0;
-	uint8_t nss;
-
-	/*
-	 *  The receive task waits for something to come in on SPI3, then prints it out on the
-	 *  UART2.   Note that this is inefficient -- all polling.
-	 */
-
-	while(true)
-		{
-		// Wait until the peripheral select line goes low: NSS
-		// SPI3_NSS is: PA15
-		nss = HAL_GPIO_ReadPin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin);
-		while (nss == 0)
-			{
-			HAL_SPI_Receive_IT(&hspi2, RX_Buffer, BUFFER_SIZE);
-			// receive_buffer[bytes_in++] = receive_byte;
-			// nss = HAL_GPIO_ReadPin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin);
-			// HAL_UART_Transmit(&huart2, receive_buffer_ptr, bytes_in, HAL_MAX_DELAY);
-			bytes_in=0;  //reset to get the next line
-			}
-		}
-	}
-
 
 
 
@@ -601,24 +539,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */
-}
-
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM2 interrupt took place, inside
@@ -644,11 +564,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi)
   {
-      // printf("here");
+      // printf("here at the spi receive\n\r");
 	  if (hspi == &hspi2)
 	  {
-      HAL_SPI_Receive_IT(&hspi2, RX_Buffer, BUFFER_SIZE);
-      HAL_UART_Transmit_IT(&huart2, RX_Buffer, BUFFER_SIZE);
+      // HAL_SPI_Receive_IT(&hspi2, RX_Buffer, BUFFER_SIZE);
+      HAL_UART_Transmit(&huart2, RX_Buffer, BUFFER_SIZE,1000);
+	  MX_SPI2_Init();  // Buffer has the data so start over
 	  }
 
   /* USER CODE END Callback 1 */

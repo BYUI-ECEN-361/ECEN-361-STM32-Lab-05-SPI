@@ -98,7 +98,7 @@ void Error_Handler(void);
 #define LED_D4_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-#define BUFFER_SIZE 255
+#define BUFFER_SIZE 50
 
 /* USER CODE END Private defines */
 
