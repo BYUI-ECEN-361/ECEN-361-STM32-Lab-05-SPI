@@ -7,10 +7,10 @@ All of the lab will start from a pre-built STM32 'Project.'  If you're reading t
 
 Open and follow the instructions found in the WORD document in your cloned repo: 
 
->``Documentation/ECEN-361-Lab-05 -- SPI and Logic Analyzer.docx``
+>Documentation/Assignment.md
 
-Modify the MSWord document with answers when finished, then commit your repository to github.   The commit will upload this word document as well and serves as the lab submission.   (Note:  MSWord is assumed to be available.  IF you don't have MSWord to edit this document, talk with the professor or T/A.)
+Modify the document with answers when finished, then commit your repository to github.   The commit will upload this document as well and serves as the lab submission.
 
-Note that there will be almost no modification of the code in this lab.  Most of the work will be in learning to work with the **Saelae Logic Analyzer** and understanding the code that initiates the independent hardward communication blocks in the **STM32F476RG**.
+Note that there will be almost no modification of the code in this lab.  Most of the work will be in learning to work with the **Logic Analyzer** and understanding the code that initiates the independent hardward communication blocks in the **STM32F476RG**.
 
 The final part of the assignment is to paste the URL of this repo into the iLearn Assignment.  
