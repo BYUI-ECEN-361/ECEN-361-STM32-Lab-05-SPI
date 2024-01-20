@@ -1,5 +1,7 @@
 # ECEN-361 Lab-05:SPI & Logic Analyzer
 
+     Student Name:  Fill-in HERE
+
 ## Introduction and Objectives of the Lab
 
 This lab will require very little code development. The project as cloned from the GitHub-Classroom, runs without modification. You’ll be asked to use a logic analyzer to capture traces of the formats and compare their utility.
