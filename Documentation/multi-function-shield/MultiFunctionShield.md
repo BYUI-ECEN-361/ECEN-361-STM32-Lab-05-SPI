@@ -13,7 +13,7 @@ This multifunction shield has a conflict with the USART used by the STM32 boards
 
 The location of the trace to be cut (XACTO knife) can be seen in the picture here:
 
-<img title="Multifunction Board Trace Cut" alt="Alt text" src="./20230813_trace-cut.jpg">
+<img title="Multifunction Board Trace Cut" alt="Alt text" src="https://github.com/BYUI-ECEN-361/ECEN-361-STM32-Lab-05-SPI/blob/main/Documentation/multi-function-shield/Multi-Function-Shield__Trace-Cut.jpg">
 
 This trace leads from D3 to the base of the PNP transistor and simply disconnects the buzzer from running all the time with the debug data output from the ST-Link.
 
