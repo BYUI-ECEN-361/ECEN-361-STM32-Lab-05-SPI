@@ -1,5 +1,6 @@
 # ECEN-361-STM32-Lab-01-multiboard
 ## BYU-I  Department of Electrical and Computer Engineering
+   Version: 1.0 -- Initial
 ## Overview / Purpose
 This sample code has been written to show how the functions added by the Multi-function board can be used for extended I/O with the STM32-Nucleo Board to be used in ECEN-361.
 
