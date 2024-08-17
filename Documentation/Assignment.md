@@ -101,7 +101,7 @@ Attach the USART3_TX and RX and sample again, looking at the data coming out, th
 
 * What is the max bitrate easily supported? <mark>[*answer here*]</mark>
 
-## Extra Credit Fun Ideas (5 pts max)
+## Ideas for Credit to get to 'A' & Extra-Credit (2 pts for any)
 
 Document what you did as appropriate here with a small paragraph and show a video clip of the results.
 
