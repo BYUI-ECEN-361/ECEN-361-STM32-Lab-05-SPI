@@ -1,18 +1,19 @@
 # ECEN-361-STM32-Lab-01-multiboard
 ## BYU-I  Department of Electrical and Computer Engineering
+   Version: 1.0 -- Initial
 ## Overview / Purpose
 This sample code has been written to show how the functions added by the Multi-function board can be used for extended I/O with the STM32-Nucleo Board to be used in ECEN-361.
 
 <img title="Multifunction Board" alt="Alt text" src="/Documentation/multifunction_shield-l1600.jpg">
 
-Schematic for this board can be found [HERE](/Documentation/multifunction_sheild_schematics.pdf).
+Schematic for this board can be found [HERE](./multifunction_sheild_schematics.pdf).
 
 ## Hardware Modification **BEFORE** Using
 This multifunction shield has a conflict with the USART used by the STM32 boards for programming.  Pin D3 (Arduino) used for the Beeper on this board is pin PB5 on the STM32 and dedicated for communication to/from the IDE debugger as **SW1**.  As is, this conflict causes the buzzer to constantly be on, with data to/from the debugger port.  Rather than change the standard debugger used in the STM32Cube IDE, it's easier to re-connect the hardware used for the buzzer.  For now, simply disabling the buzzer can be done by cutting the conflicting output that goes to the buzzer. 
 
 The location of the trace to be cut (XACTO knife) can be seen in the picture here:
 
-<img title="Multifunction Board Trace Cut" alt="Alt text" src="/Documentation/20230813_trace-cut.jpg">
+<img title="Multifunction Board Trace Cut" alt="Alt text" src="https://github.com/BYUI-ECEN-361/ECEN-361-STM32-Lab-05-SPI/blob/main/Documentation/multi-function-shield/Multi-Function-Shield__Trace-Cut.jpg">
 
 This trace leads from D3 to the base of the PNP transistor and simply disconnects the buzzer from running all the time with the debug data output from the ST-Link.
 

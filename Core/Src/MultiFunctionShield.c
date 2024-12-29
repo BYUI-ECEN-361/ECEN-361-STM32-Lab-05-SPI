@@ -5,15 +5,16 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2023 BYU-Idaho
-  * All rights reserved.
-  *
-  ******************************************************************************
   * @copyright  BYU-Idaho
-  * @date	2023
-  * @version    F23
+  * @date	2024
+  * @version    F24
   * @note       For course ECEN-361
   * @author     Lynn Watson
+  * Additions by Austin Slaughter, 
+  * Version:    8.0
+  *
+  * Note that there is a DisplayByte Character Builder Template Spreadsheet here:
+  * http://tinyurl.com/5dr74jx5
   ******************************************************************************
   */
 #include "main.h"
@@ -82,6 +83,69 @@ void MultiFunctionShield_Single_Digit_Display (int digit, int8_t value)
 	}
 
 
+
+/* Bit numbers of segments:
+  --1--
+ |     |
+ 6     2
+ |     |
+  --7--
+ |     |
+ 5     3
+ |     |
+  --4--  (8)
+ */
+
+/**
+ * @brief MultiFunctionShield Display Byte at Digit
+ * This function sends a custom data byte to be displayed at one of the 4 digit positions.
+ * 1 is the rightmost and 4 is the leftmost.
+ * Invalid digit will display "----" instead.
+ * (Written by Austin Slaughter in winter 2024)
+ * @param digit: 1..4, pick the digit to write to (1 is rightmost)
+ * @param value: 0x00..0xFF, pick the value to display
+ * @retval None
+ */
+void MultiFunctionShield_DisplayByteAt(int digit, unsigned char value) {
+        if ((digit <= 4) && (digit >= 0))
+                SEGMENT_VALUE[4 - digit] = ~value;  // Note that
+        else {
+                SEGMENT_VALUE[0] = SEGMENT_MINUS;
+                SEGMENT_VALUE[1] = SEGMENT_MINUS;
+                SEGMENT_VALUE[2] = SEGMENT_MINUS;
+                SEGMENT_VALUE[3] = SEGMENT_MINUS;
+        }
+}
+
+/**
+ * @brief MultiFunctionShield Display 4 Bytes (From uint32)
+ * This function sends an int32 to be displayed on all 32 "bits" of the 7seg display.
+ * MSB (top byte) is the leftmost, LSB (bottom byte) is the rightmost.
+ * (Written by Austin Slaughter in winter 2024)
+ * @param values: 32-bit number to display
+ * @retval None
+ */
+void MultiFunctionShield_DisplayBytes(uint32_t values) {
+        values = ~values;  // Segments are on when their bit is 0
+        //unsigned char bytes[4] = { values & 0xFF, (values >> 8) & 0xFF, (values >> 16) & 0xFF, (values >> 24) & 0xFF };
+        //                          top byte                                                               bottom byte
+        unsigned char bytes[4] = { (values >> 24) & 0xFF, (values >> 16) & 0xFF, (values >> 8) & 0xFF, values & 0xFF };
+        for (int i = 0; i < 4; i++) { SEGMENT_VALUE[i] = bytes[i]; }
+		}
+
+/**
+ * @brief MultiFunctionShield Display 4 Bytes (From Array)
+ * This function sends an array of 4 bytes to be displayed on all 32 "bits" of the 7seg display.
+ * bytes[0] is the leftmost, bytes[3] is the rightmost.
+ * (Written by Austin Slaughter in winter 2024)
+ * @param bytes: Four bytes to display
+ * @retval None
+ */
+void MultiFunctionShield_DisplayByteArray(unsigned char bytes[4]) {
+        for (int i = 0; i < 4; i++) {
+                SEGMENT_VALUE[i] = ~bytes[i];
+        }
+}
 
 
 

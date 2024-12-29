@@ -89,6 +89,7 @@ uint8_t RX_Buffer[BUFFER_SIZE] = {0};
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 	uint8_t bytes_in =0;
 
