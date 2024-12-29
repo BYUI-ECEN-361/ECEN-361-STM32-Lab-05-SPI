@@ -99,19 +99,28 @@ Attach the USART3_TX and RX and sample again, looking at the data coming out, th
 
 * What is the default bitrate?  (time per bit)  -- Use the measurement tool (looks like a ruler) <mark>[*answer here*]</mark>
 
-* What is the max bitrate easily supported? <mark>[*answer here*]</mark>
+* What is the max bitrate easily supported?
+<mark>[*answer here*]</mark>
 
-## Extra Credit Fun Ideas (5 pts max)
+## Ideas for Credit to get to 'A' & Extra-Credit (2 pts for any)
 
 Document what you did as appropriate here with a small paragraph and show a video clip of the results.
 
 * Add on the MultiFunction Board, and have it display the number of characters sent each time.
 
+<mark>[*answer here*]</mark>
+
 * Enable SPI2, as shown in the table above (thru the .IOC configuration file), and read code that gets sent from SPI1->SPI2
+
+<mark>[*answer here*]</mark>
 
 * Currently SPI is running in “blocking” (polled) mode.  Change it to run via an interrupt so the processor could be more efficient.
 
+<mark>[*answer here*]</mark>
+
 * Enable a ‘smart’ trigger on the Logic Analyzer so it doesn’t actually begin capturing data until specific data is decoded/found.
+
+<mark>[*answer here*]</mark>
 
 ## Reference
 
