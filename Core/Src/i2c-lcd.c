@@ -1,4 +1,5 @@
 #include "i2c-lcd.h"
+#include <stdio.h>
 
 #define I2C_ADDR 0x27 // I2C address of the PCF8574
 #define RS_BIT 0 // Register select bit
@@ -24,7 +25,7 @@ void lcd_write_nibble(uint8_t nibble, uint8_t rs) {
  HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDR << 1, &data, 1, 100);
 }
 
-void lcd_write_byte(uint8_t byte){
+HAL_StatusTypeDef lcd_write_byte(uint8_t byte){
 	char data_upper, data_lower;
 	uint8_t data[4];
 	data_upper = (byte&0xf0);
@@ -33,7 +34,7 @@ void lcd_write_byte(uint8_t byte){
 	data[1] = data_upper|0x09;  //en=0, rs=0 -> bxxxx1001
 	data[2] = data_lower|0x0D;  //en=1, rs=0 -> bxxxx1101
 	data[3] = data_lower|0x09;  //en=0, rs=0 -> bxxxx1001
-	HAL_I2C_Master_Transmit (&hi2c2, I2C_ADDR << 1, (uint8_t *) data, 4, 100);
+	return HAL_I2C_Master_Transmit (&hi2c2, I2C_ADDR << 1, (uint8_t *) data, 4, 100);
 }
 void lcd_send_cmd(uint8_t cmd) {
  uint8_t upper_nibble = cmd >> 4;
@@ -72,9 +73,13 @@ void lcd_write_string(char *str) {
 			 str++;
 		 }
 		 else{
-			 lcd_write_byte((uint8_t)*str++);
+			 if (lcd_write_byte((uint8_t)*str++) == HAL_ERROR){
+				 printf("Failed to Transmit over I2C\n\r");
+				 return;		// Return Without Continuing, if unable to transmit
+			 }
 		 }
 	 }
+	 return;
 }
 void lcd_set_cursor(uint8_t row, uint8_t column) {
  uint8_t address;

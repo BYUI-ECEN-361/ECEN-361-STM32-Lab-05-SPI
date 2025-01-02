@@ -85,6 +85,8 @@ The transfer rate is a function of a clock divider on the main clock (80Mhz). De
 
 ## Part 2: Doing the same with I2C
 
+![](media/LCD_Display_I2C.png)
+
 Attach the I2C Signals to look at the data coming out, then answer:
 
 * What is the default bitrate?  (time per bit)  -- Use the measurement tool (looks like a ruler) <mark>[*answer here*]</mark>
