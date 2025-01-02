@@ -24,6 +24,7 @@
 #include "MultiFunctionShield.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include "i2c-lcd.h"
 
 /* USER CODE END Includes */
 
@@ -123,6 +124,13 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // Initialize the LCD
+  lcd_init();
+  lcd_clear();
+  lcd_backlight(1); // Turn on backlight
+  // Write a string to the LCD
+
+
   // Start timer
   HAL_TIM_Base_Start_IT(&htim17);							// LED SevenSeg cycle thru them
   MultiFunctionShield_Clear();								// Clear the 7-seg display
@@ -146,13 +154,16 @@ int main(void)
     /* USER CODE BEGIN 3 */
     bytes_in = Read_and_Transmit_Task();
 
+
     /**************** STEP 1:  Send it SPI-1 *********************/
 	HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 0);
 	HAL_SPI_Transmit(&hspi1, RX_Buffer, bytes_in , HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, 1);
 
     /**************** STEP 2:  Send it I2C-2 *********************/
-	HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)SLAVE_ADDRESS, RX_Buffer, bytes_in, HAL_MAX_DELAY);
+//	HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)SLAVE_ADDRESS, RX_Buffer, bytes_in, HAL_MAX_DELAY);
+	lcd_clear();
+	lcd_write_string((char*) RX_Buffer);
 
     /**************** STEP 3:  Send it USART-3 *********************/
 	HAL_UART_Transmit(&huart3, RX_Buffer, bytes_in, HAL_MAX_DELAY);
@@ -570,15 +581,16 @@ uint8_t Read_and_Transmit_Task()
 		 */
 		while (receive_byte != '\r')
 		{
-			while (HAL_UART_Receive(&huart2, &receive_byte, 1,10) != HAL_OK) HAL_Delay(1);
+			while (HAL_UART_Receive(&huart2, &receive_byte, 1, 10) != HAL_OK) HAL_Delay(1);
 			/* Now we have a byte, if it's a carriage return, send the string
 			 * If not, put it on the buffer
 			 */
-			RX_Buffer[bytes_in] = receive_byte;
-			HAL_UART_Transmit(&huart2, &RX_Buffer[bytes_in++] , 1, HAL_MAX_DELAY);  //echo each one as it's typed
+			RX_Buffer[bytes_in++] = receive_byte;
 		}
+			HAL_UART_Transmit(&huart2, (const uint8_t*) &RX_Buffer , bytes_in - 1, HAL_MAX_DELAY);  //echo entire message once completed
 
 		RX_Buffer[bytes_in++] = '\n'; // Add a line_feed
+		RX_Buffer[bytes_in] = 0; // finish with null terminator character
 		// Tell the User what we got and what we're sending
 		HAL_UART_Transmit(&huart2, sndmsg_ptr, 13, HAL_MAX_DELAY);
 		//HAL_UART_Transmit(&huart2, receive_buffer_ptr, bytes_in, HAL_MAX_DELAY);
