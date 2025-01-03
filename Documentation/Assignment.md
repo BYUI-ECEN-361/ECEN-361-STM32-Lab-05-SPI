@@ -85,7 +85,11 @@ The transfer rate is a function of a clock divider on the main clock (80Mhz). De
 
 ## Part 2: Doing the same with I2C
 
+For this part of the Lab, you will use an LCD Display over I<sup>2</sup>C
+
 ![](media/LCD_Display_I2C.png)
+
+Connect the SDA, SCL, GND and VCC pins to the Nucleo Board. (Ensure VCC is connected to 5V, not 3.3V)
 
 Attach the I2C Signals to look at the data coming out, then answer:
 
@@ -93,7 +97,7 @@ Attach the I2C Signals to look at the data coming out, then answer:
 
 * How much time between each byte? <mark>[*answer here*]</mark>
 
-* What is the value of the data coming out first?  It's not like the others. <mark>[*answer here*]</mark>
+* What is the value of the data coming out first?  (It's not like the others.) <mark>[*answer here*]</mark>
 
 ## Part 3: Doing the same with a UART
 
@@ -129,7 +133,7 @@ The following is a capture of all three protocols.
 Notes that you'll need:
 
 - The LogicAnalyzer can apply different protocols to different signals. In this case all three are shown
-- I2C in master mode first transmits the address (here it's 0x11), then waits for the ACK to send the data. Without a SLAVE no data is actually sent
+- I2C in master mode first transmits the address (here it's 0x11), then waits for the ACK to send the data. Without a SLAVE no data will actually be sent
 - The UART is much slower and has overhead of start/stop bits
 
 ![A screen shot of a computer Description automatically generated](media/a23903139a8f27019f1dbef9024cb7b8.png)
