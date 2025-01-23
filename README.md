@@ -5,7 +5,7 @@ This lab introduces three different digital serial communication protocols:  SPI
 
 All of the lab will start from a pre-built STM32 'Project.'  If you're reading this, you've probably already accepted and cloned the project into your STM32CubeIDE workspace.  If you need help do that, see the instructions [HERE](./Documentation/Working_with_Labs_from_Github_Classroom_Repository.pdf).
 
-Open and follow the instructions found in the WORD document in your cloned repo: 
+Open and follow the instructions found in the Markdown (*.md) document in your cloned repo: 
 
 >Documentation/Assignment.md
 
